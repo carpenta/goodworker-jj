@@ -40,6 +40,11 @@ class AdminHandler(webapp2.RequestHandler):
 		admin = JINJA_ENVIRONMENT.get_template('views/admin.html')
 		self.response.write(admin.render(options))
 
+class TestHandler(webapp2.RequestHandler):
+	def get(self):
+		test = JINJA_ENVIRONMENT.get_template('views/test.html')
+		self.response.write(test.render(options))
+
 app = webapp2.WSGIApplication([
 	(r'/', MainHandler),
 	(r'/sample', SampleHandler),
@@ -48,5 +53,6 @@ app = webapp2.WSGIApplication([
 	(r'/people/(\d+)', PeopleHandler),
 	(r'/upload', UploadHandler),
 	(r'/admin', AdminHandler),
+	(r'/test', TestHandler),
 	('/serve/([^/]+)?', ServeHandler)
 ], debug=True)

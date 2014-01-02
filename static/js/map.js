@@ -4,14 +4,17 @@ function addMarker(map, position, text) {
 	});
 	marker.setTitle(text);
 	marker.setMap(map);
-	var infowindow = new daum.maps.InfoWindow({
-		content: text,
-		disableAutoPan: true
-	});
-	infowindow.open(map, marker);
+	if (text != null && text.length > 0) {
+		var infowindow = new daum.maps.InfoWindow({
+			content: text,
+			disableAutoPan: true
+		});
+		infowindow.open(map, marker);
+	}
+	return marker;
 }
 
-function initMap() {
+function initMap(options) {
 	var lat = 33.4780117808;
 	var lng = 126.489289086;
 	var position = new daum.maps.LatLng(lat, lng);
@@ -21,11 +24,11 @@ function initMap() {
 		mapTypeId: daum.maps.MapTypeId.ROADMAP,
 		draggable: true
 	});
-
 	var zoom = new daum.maps.ZoomControl();
 	map.addControl(zoom);
 
-	addMarker(map, position, "<div class='info-content'>충신교회</div>");
-
+	if (!options || !options.disableDefaultMarker) {
+		addMarker(map, position, "<div class='info-content'>충신교회</div>");
+	}
 	return map;
 }
