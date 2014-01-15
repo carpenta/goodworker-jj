@@ -49,6 +49,55 @@
 					</div>
 				</div>
 			</div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="panel panel-primary">
+            <div class="panel-heading">
+              <h3 class="panel-title">Address Editor </h3>
+            </div>
+
+            <div class="panel-body">
+              <div class="form-horizontal">
+                <input type="hidden" id="member_id">
+                <div class="form-group">
+                  <label for="member_name" class="control-label col-sm-3">이름</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control" id="member_name" placeholder="이름">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="member_address" class="control-label col-sm-3">주소</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control" id="member_address" placeholder="주소">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="member_group" class="control-label col-sm-3">공동체</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control" id="member_group" placeholder="공동체명">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="member_lat" class="control-label col-sm-3">lat</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control" id="member_lat" placeholder="lat" disabled="disabled">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="member_lng" class="control-label col-sm-3">lng</label>
+                  <div class="col-sm-9">
+                    <input type="text" class="form-control" id="member_lng" placeholder="lng" disabled="disabled">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <div class="col-sm-3"></div>
+                  <div class="col-sm-9"><span class="btn btn-success" id="member_update">수정</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 		</div>
 	</div>
 </div>
@@ -57,14 +106,14 @@
 
 {% block scripts %}
 <script type="text/template" class="list-table">
-<% _.each(peoples, function(p){ %>
+<% _.each(peoples, function(p,idx){ %>
 <tr>
 	<td><%= p.name %></td>
 	<td><%= p.address %></td>
 	<td><%= p.group %></td>
 	<td>
 	<% if (_.isEmpty(p.latitude)) { %>
-		<span class="btn btn-primary map-search" data="<%= p.address%>" id="search-<%= p.__key__ %>"><i class="glyphicon glyphicon-search"></i></span>
+		<span class="btn btn-primary map-search" data="<%= idx%>" id="search-<%= p.__key__ %>"><i class="glyphicon glyphicon-search"></i></span>
 	<% } else  { %>
 		<%= p.latitude %><br><%= p.longitude %>
 	<% } %>
@@ -81,23 +130,69 @@
 <script type="text/javascript" src="http://apis.daum.net/maps/maps3.js?apikey=be8461f474875777838e40e92203110657225288"></script>
 <script type="text/javascript" src="js/map.js"></script>
 <script type="text/javascript">
-function bindSearchEvents(){
+var data = [];
+function bindFormControlEvents() {
+  $("#member_update").click(function(evt) {
+    if (_.isEmpty($("#member_id").val())) {
+      return;
+    }
+    var member_id = $("#member_id").val();
+    var member_data = {
+      "name":$("#member_name").val(),
+      "address":$("#member_address").val(),
+      "group":$("#member_group").val(),
+      "latitude":$("#member_lat").val(),
+      "longitude":$("#member_lng").val()
+    };
+    //console.log(member_data);
+    $.ajax({
+      url:"people/"+member_id, 
+      type:"PUT",
+      data:JSON.stringify(member_data), 
+      success: function(resp) {
+        alert("업데이트 되었습니다");
+        getData();
+      }
+    });
+  });
+}
+
+function bindSearchEvents() {
 	$(".map-search").click(function(evt){
-		$("#address").val($(this).attr('data'));
+    var member = data[$(this).attr('data')];
+    //console.log(member);
+		$("#address").val(member.address);
+    $("#member_id").val(member.__id__);
+    $("#member_name").val(member.name);
+    $("#member_address").val(member.address);
+    $("#member_group").val(member.group);
+    $("#member_lat").val(member.latitude);
+    $("#member_lng").val(member.longitude);
+	});
+}
+
+function getData() {
+	$.get("people", "json", function(d){
+		var tpl = _.template($("script.list-table").html());
+    data = _.sortBy(d, function(d){ return d.name; });
+    $("#list-holder").html(tpl({peoples:data}));
+		bindSearchEvents();
 	});
 }
 
 $(function() {
-	$.get("people", "json", function(d){
-		var tpl = _.template($("script.list-table").html());
-		$("#list-holder").html(tpl({peoples:_.sortBy(d, function(d){
-			return d.name;
-		})}));
+  bindFormControlEvents();
 
-		bindSearchEvents();
+  getData();
+
+	var map = initMap({'disableDefaultMarker':true});
+  var marker = addMarker(map, new daum.maps.LatLng(lat, lng));
+  marker.setDraggable(true);
+	daum.maps.event.addListener(marker,"dragend",function(){
+		var marker_pos = marker.getPosition();
+    $("#member_lat").val(marker_pos.getLat());
+    $("#member_lng").val(marker_pos.getLng());
 	});
-
-	var map = initMap();
 
 	$("#search-address").click(function(evt){
 		var api = "http://apis.daum.net/local/geo/addr2coord?apikey=6b878d3f61024706c8d261d500a59ff43edf28ed&output=json&q="
@@ -106,8 +201,8 @@ $(function() {
 			if (!!addrs && addrs.length > 0) {
 				var addr = addrs[0];
 				var pos = new daum.maps.LatLng(addr.lat, addr.lng);
-				console.log(addr);
-				addMarker(map, pos, 'test');
+				//console.log(addr);
+        marker.setPosition(pos);
 				map.panTo(pos);
 			} else {
 				alert("지도에서 찾을 수 없는 주소 입니다.");

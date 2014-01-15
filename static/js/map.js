@@ -1,3 +1,5 @@
+var lat = 33.4780117808;
+var lng = 126.489289086;
 function addMarker(map, position, text) {
 	var marker = new daum.maps.Marker({
 		position: position
@@ -15,8 +17,6 @@ function addMarker(map, position, text) {
 }
 
 function initMap(options) {
-	var lat = 33.4780117808;
-	var lng = 126.489289086;
 	var position = new daum.maps.LatLng(lat, lng);
 	var map = new daum.maps.Map(document.getElementById('map'), {
 		center: position,
