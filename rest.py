@@ -12,11 +12,9 @@ DEFAULT_FETCH_SIZE = 10
 
 class RestHandler(webapp2.RequestHandler):
 	model = ndb.Model
-
 	@staticmethod
 	def qo(page, limit):
 		return ndb.QueryOptions(offset=page*limit, limit=limit)
-
 	def get(self, ndbid=None):
 		self.response.content_type = 'application/json'
 		if ndbid is None:
