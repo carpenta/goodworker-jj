@@ -12,43 +12,42 @@
 
 {% block content %}
 <div class="container">
-	<h1>{{title}}</h1>
-	<div class="row">
-		<div class="col-md-8">
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>이름</th>
-						<th>주소</th>
-						<th>공동체명</th>
-						<th>지도상 위치</th>
-						<th></th>
-					</tr>
-				</thead>
+  <h1>{{title}}</h1>
+  <div class="row">
+    <div class="col-md-8">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>이름</th>
+            <th>주소</th>
+            <th>공동체명</th>
+            <th>지도상 위치</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="list-holder">
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-4">
+      <div class="row" id="map-holder">
+        <div class="col-md-12">
+          <div id="map" style="width:100%; height:400px; border:1px solid black;"></div>
+        </div>
+      </div>
 
-				<tbody id="list-holder">
-				</tbody>
-			</table>
-		</div>
-		<div class="col-md-4">
-			<div class="row" id="map-holder">
-				<div class="col-md-12">
-					<div id="map" style="width:100%; height:400px; border:1px solid black;"></div>
-				</div>
-			</div>
-
-			<div class="row" id="finder-holder" style="margin-top:10px;">
-				<div class="col-md-12">
-					<div class="form-group">
-						<div class="input-group">
-							<input type="text" id="address" class="form-control input-small autodisabled" placeholder="(주소)"/>
-							<span class="input-group-btn">
-								<span id="search-address" class="btn btn-primary"><i class="glyphicon glyphicon-remove"></i> 위치찾기</span>
-							</span>
-						</div>
-					</div>
-				</div>
-			</div>
+      <div class="row" id="finder-holder" style="margin-top:10px;">
+        <div class="col-md-12">
+          <div class="form-group">
+            <div class="input-group">
+              <input type="text" id="address" class="form-control input-small autodisabled" placeholder="(주소)"/>
+              <span class="input-group-btn">
+                <span id="search-address" class="btn btn-primary"><i class="glyphicon glyphicon-remove"></i> 위치찾기</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="row">
         <div class="col-md-12">
           <div class="panel panel-primary">
@@ -98,8 +97,8 @@
           </div>
         </div>
       </div>
-		</div>
-	</div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
@@ -108,17 +107,17 @@
 <script type="text/template" class="list-table">
 <% _.each(peoples, function(p,idx){ %>
 <tr>
-	<td><%= p.name %></td>
-	<td><%= p.address %></td>
-	<td><%= p.group %></td>
-	<td>
-	<% if (_.isEmpty(p.latitude)) { %>
-		<span class="btn btn-primary map-search" data="<%= idx%>" id="search-<%= p.__key__ %>"><i class="glyphicon glyphicon-search"></i></span>
-	<% } else  { %>
-		<%= p.latitude %><br><%= p.longitude %>
-	<% } %>
-	</td>
-	<td><span class="btn btn-danger"><i class="glyphicon glyphicon-remove"></i></span></td>
+  <td><%= p.name %></td>
+  <td><%= p.address %></td>
+  <td><%= p.group %></td>
+  <td>
+  <% if (_.isEmpty(p.latitude)) { %>
+    <span class="btn btn-primary map-search" data="<%= idx%>" id="search-<%= p.__key__ %>"><i class="glyphicon glyphicon-search"></i></span>
+  <% } else  { %>
+    <%= p.latitude %><br><%= p.longitude %>
+  <% } %>
+  </td>
+  <td><span class="btn btn-danger btn-item-delete" data="<%= idx%>"><i class="glyphicon glyphicon-remove"></i></span></td>
 </tr>
 <% }); %>
 </script>
@@ -158,26 +157,30 @@ function bindFormControlEvents() {
 }
 
 function bindSearchEvents() {
-	$(".map-search").click(function(evt){
+  $(".map-search").click(function(evt){
     var member = data[$(this).attr('data')];
     //console.log(member);
-		$("#address").val(member.address);
+    $("#address").val(member.address);
     $("#member_id").val(member.__id__);
     $("#member_name").val(member.name);
     $("#member_address").val(member.address);
     $("#member_group").val(member.group);
     $("#member_lat").val(member.latitude);
     $("#member_lng").val(member.longitude);
-	});
+  });
+  $(".btn-item-delete").click(function(evt) {
+    var member = data[$(this).attr('data')];
+    console.log(member);
+  });
 }
 
 function getData() {
-	$.get("people", "json", function(d){
-		var tpl = _.template($("script.list-table").html());
+  $.get("people", "json", function(d){
+    var tpl = _.template($("script.list-table").html());
     data = _.sortBy(d, function(d){ return d.name; });
     $("#list-holder").html(tpl({peoples:data}));
-		bindSearchEvents();
-	});
+    bindSearchEvents();
+  });
 }
 
 $(function() {
@@ -185,30 +188,30 @@ $(function() {
 
   getData();
 
-	var map = initMap({'disableDefaultMarker':true});
+  var map = initMap({'disableDefaultMarker':true});
   var marker = addMarker(map, new daum.maps.LatLng(lat, lng));
   marker.setDraggable(true);
-	daum.maps.event.addListener(marker,"dragend",function(){
-		var marker_pos = marker.getPosition();
+  daum.maps.event.addListener(marker,"dragend",function(){
+    var marker_pos = marker.getPosition();
     $("#member_lat").val(marker_pos.getLat());
     $("#member_lng").val(marker_pos.getLng());
-	});
+  });
 
-	$("#search-address").click(function(evt){
-		var api = "http://apis.daum.net/local/geo/addr2coord?apikey=6b878d3f61024706c8d261d500a59ff43edf28ed&output=json&q="
-		$.getJSON(api+$("#address").val() + "&callback=?", null, function(d) {
-			var addrs = d.channel.item;
-			if (!!addrs && addrs.length > 0) {
-				var addr = addrs[0];
-				var pos = new daum.maps.LatLng(addr.lat, addr.lng);
-				//console.log(addr);
+  $("#search-address").click(function(evt){
+    var api = "http://apis.daum.net/local/geo/addr2coord?apikey=6b878d3f61024706c8d261d500a59ff43edf28ed&output=json&q="
+    $.getJSON(api+$("#address").val() + "&callback=?", null, function(d) {
+      var addrs = d.channel.item;
+      if (!!addrs && addrs.length > 0) {
+        var addr = addrs[0];
+        var pos = new daum.maps.LatLng(addr.lat, addr.lng);
+        //console.log(addr);
         marker.setPosition(pos);
-				map.panTo(pos);
-			} else {
-				alert("지도에서 찾을 수 없는 주소 입니다.");
-			}
-		});
-	});
+        map.panTo(pos);
+      } else {
+        alert("지도에서 찾을 수 없는 주소 입니다.");
+      }
+    });
+  });
 });
 </script>
 {% endblock %}
