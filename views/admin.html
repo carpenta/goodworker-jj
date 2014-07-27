@@ -106,18 +106,18 @@
 {% block scripts %}
 <script type="text/template" class="list-table">
 <% _.each(peoples, function(p,idx){ %>
-<tr>
+<tr id='tr-<%=idx %>'>
   <td><%= p.name %></td>
   <td><%= p.address %></td>
   <td><%= p.group %></td>
   <td>
   <% if (_.isEmpty(p.latitude)) { %>
-    <span class="btn btn-primary map-search" data="<%= idx%>" id="search-<%= p.__key__ %>"><i class="glyphicon glyphicon-search"></i></span>
+    <span class="btn btn-primary map-search" data="<%= idx %>" id="search-<%= p.__key__ %>"><i class="glyphicon glyphicon-search"></i></span>
   <% } else  { %>
     <%= p.latitude %><br><%= p.longitude %>
   <% } %>
   </td>
-  <td><span class="btn btn-danger btn-item-delete" data="<%= idx%>"><i class="glyphicon glyphicon-remove"></i></span></td>
+  <td><span class="btn btn-danger btn-item-delete" data="<%= idx %>"><i class="glyphicon glyphicon-remove"></i></span></td>
 </tr>
 <% }); %>
 </script>
@@ -169,8 +169,17 @@ function bindSearchEvents() {
     $("#member_lng").val(member.longitude);
   });
   $(".btn-item-delete").click(function(evt) {
-    var member = data[$(this).attr('data')];
-    console.log(member);
+    var data_idx = $(this).attr('data')
+    var member = data[data_idx];
+    //console.log(member);
+    $.ajax({
+      url:"people/"+member.__id__,
+      type:"DELETE",
+      success: function(resp) {
+        $("#tr-"+data_idx).remove();
+        alert("삭제되었습니다");
+      }
+    });
   });
 }
 

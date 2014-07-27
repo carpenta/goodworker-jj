@@ -83,5 +83,6 @@ if __name__ == '__main__':
     it = InitTool(options.file, options.host)
     it.insert()
     it.close()
-  
-  print 'complete!'
+    print 'complete!'
+  else:
+    print 'usage : bulkinsert.py -f <filename> -h <hostname>'

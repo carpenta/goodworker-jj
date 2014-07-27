@@ -5,6 +5,8 @@
 {% endblock %} 
 
 {% block head %}
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
 <style>
   html { height: 100%; }
   body { height: 100%; margin: 0; padding: 0 }
@@ -14,16 +16,26 @@
   .red { background-color:red; color:white; }
   .yellow { background-color:yellow; color:black; }
   .green { background-color:green; color:white; }
-  #search {width:30%; position:fixed; left:10px; top:10px; background: rgba(255,255,255,0.7); z-index:1; padding:10px;}
+  .gray { background-color:gray; color:black; }
+  #search {
+    position:fixed; 
+    left:10px; 
+    top:10px; 
+    background: rgba(255,255,255,0.7); 
+    z-index:1; 
+    padding:10px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+  }
   h1 { margin:0; padding:0; }
 </style>
 {% endblock %}
 
 {% block content %}
 <div id='map'></div>
-<div id='search'>
-  <input type='text' name='q' placeholder='Name' id='ipt-search-people' />
-  <input type='button' id='btn-search-people' value='Search' />
+<div id='search' class='form-inline'>
+  <input type='text' name='q' placeholder='Name' id='ipt-search-people' class='form-control' />
+  <input type='button' id='btn-search-people' value='Search' class='form-control' />
 </div>
 {% endblock %}
 
@@ -31,6 +43,7 @@
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.5.2/underscore-min.js"></script>
 <script type="text/javascript" src="http://apis.daum.net/maps/maps3.js?apikey=be8461f474875777838e40e92203110657225288"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 <script type="text/javascript" src="js/map.js"></script>
 <script type="text/javascript">
 var data = {{data}};
@@ -46,6 +59,8 @@ $(function(){
         g = "<span class='box yellow'>" + g + "</span>";
       } else if (g.indexOf("믿음") > -1) {
         g = "<span class='box green'>" + g + "</span>";
+      } else if (g.indexOf("신규") > -1) {
+        g = "<span class='box gray'>" + g + "</span>";
       }
       addMarker(map, pos, "<div class='box info-content'>" + g + d.name + "</div>");
     }
@@ -66,13 +81,26 @@ $(function(){
     .css("width","80px")
   });
 
-  $('#btn-search-people').click(function(evt) {
-    var name = $('#ipt-search-people').val();
-    var finded = _.find(data, function(p) { return p.name == name; });
-    if (finded) {
-      map.setCenter(new daum.maps.LatLng(finded.latitude, finded.longitude));
+  $('#ipt-search-people').keypress(function(evt) {
+    if ( evt.which == 13 ) {
+      var name = $(this).val();
+      findPerson(name);
     }
   });
+  $('#btn-search-people').click(function(evt) {
+    var name = $('#ipt-search-people').val();
+    findPerson(name);
+  });
+
+  function findPerson(name) {
+      var finded = _.find(data, function(p) { return p.name == name; });
+      if (finded) {
+        map.setCenter(new daum.maps.LatLng(finded.latitude, finded.longitude));
+        map.setLevel(3);
+      }
+  }
 });
+
+
 </script>
 {% endblock %}
